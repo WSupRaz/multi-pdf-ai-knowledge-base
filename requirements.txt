@@ -1,0 +1,6 @@
+PyPDF2
+numpy
+faiss-cpu
+sentence-transformers
+requests
+python-dotenv
