@@ -1,3 +1,4 @@
+import streamlit as st
 import os
 import requests
 import numpy as np
@@ -18,19 +19,23 @@ headers = {
     "Content-Type": "application/json"
 }
 
-# Load embedding model
-model = SentenceTransformer("all-MiniLM-L6-v2")
+st.title("📄 AI Document Assistant")
 
-PDF_FOLDER = "pdfs"
+uploaded_files = st.file_uploader(
+    "Upload PDF files", type="pdf", accept_multiple_files=True
+)
 
-all_chunks = []
+question = st.text_input("Ask a question about the documents")
 
-# Read all PDFs
-for file in os.listdir(PDF_FOLDER):
+if uploaded_files and question:
 
-    if file.endswith(".pdf"):
+    model = SentenceTransformer("all-MiniLM-L6-v2")
 
-        reader = PdfReader(os.path.join(PDF_FOLDER, file))
+    all_chunks = []
+
+    for file in uploaded_files:
+
+        reader = PdfReader(file)
 
         text = ""
 
@@ -39,55 +44,42 @@ for file in os.listdir(PDF_FOLDER):
             if page_text:
                 text += page_text
 
-        # Split into chunks
         chunk_size = 300
         chunks = [text[i:i+chunk_size] for i in range(0, len(text), chunk_size)]
 
         all_chunks.extend(chunks)
 
-print("Total chunks:", len(all_chunks))
+    embeddings = model.encode(all_chunks)
 
-# Create embeddings
-embeddings = model.encode(all_chunks)
+    dimension = embeddings.shape[1]
+    index = faiss.IndexFlatL2(dimension)
 
-dimension = embeddings.shape[1]
+    index.add(np.array(embeddings))
 
-index = faiss.IndexFlatL2(dimension)
+    q_embedding = model.encode([question])
 
-index.add(np.array(embeddings))
+    k = 3
+    distances, indices = index.search(np.array(q_embedding), k)
 
-print("FAISS index ready")
+    top_chunks = [all_chunks[i] for i in indices[0]]
 
-# Ask question
-question = input("Ask question: ")
+    context = "\n".join(top_chunks)
 
-q_embedding = model.encode([question])
+    data = {
+        "model": "openai/gpt-3.5-turbo",
+        "messages": [
+            {"role": "system", "content": "Answer using only the provided context."},
+            {"role": "user", "content": f"Context:\n{context}\n\nQuestion:{question}"}
+        ]
+    }
 
-k = 3
+    response = requests.post(url, headers=headers, json=data)
 
-distances, indices = index.search(np.array(q_embedding), k)
+    result = response.json()
 
-top_chunks = [all_chunks[i] for i in indices[0]]
-
-context = "\n".join(top_chunks)
-
-# Send to LLM
-data = {
-    "model": "openai/gpt-3.5-turbo",
-    "messages": [
-        {"role": "system", "content": "Answer using only the provided context."},
-        {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {question}"}
-    ]
-}
-
-response = requests.post(url, headers=headers, json=data)
-
-result = response.json()
-
-print("API response:", result)
-
-if "choices" in result:
-    answer = result["choices"][0]["message"]["content"]
-    print("\nAI Answer:\n", answer)
-else:
-    print("API Error:", result)
+    if "choices" in result:
+        answer = result["choices"][0]["message"]["content"]
+        st.write("### AI Answer")
+        st.write(answer)
+    else:
+        st.write("API Error:", result)
