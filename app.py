@@ -19,8 +19,17 @@ headers = {
     "Content-Type": "application/json"
 }
 
+# App Title
 st.title("📄 AI Document Assistant")
 
+# Load embedding model ONCE (important optimization)
+@st.cache_resource
+def load_model():
+    return SentenceTransformer("all-MiniLM-L6-v2")
+
+model = load_model()
+
+# Upload PDFs
 uploaded_files = st.file_uploader(
     "Upload PDF files", type="pdf", accept_multiple_files=True
 )
@@ -29,7 +38,7 @@ uploaded_files = st.file_uploader(
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# Show old messages
+# Show previous messages
 for message in st.session_state.chat_history:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
@@ -39,14 +48,11 @@ question = st.chat_input("Ask something about the documents")
 
 if uploaded_files and question:
 
-    model = SentenceTransformer("all-MiniLM-L6-v2")
-
     all_chunks = []
 
     for file in uploaded_files:
 
         reader = PdfReader(file)
-
         text = ""
 
         for page in reader.pages:
@@ -89,7 +95,16 @@ if uploaded_files and question:
 
     if "choices" in result:
         answer = result["choices"][0]["message"]["content"]
-        st.write("### AI Answer")
-        st.write(answer)
+
+        st.session_state.chat_history.append(
+            {"role": "user", "content": question}
+        )
+        st.session_state.chat_history.append(
+            {"role": "assistant", "content": answer}
+        )
+
+        with st.chat_message("assistant"):
+            st.markdown(answer)
+
     else:
         st.write("API Error:", result)
