@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 # Load API key
 load_dotenv()
-api_key = os.getenv("OPENROUTER_API_KEY")
+api_key = os.getenv("OPENROUTER_API_KEY") or st.secrets.get("OPENROUTER_API_KEY")
 
 url = "https://openrouter.ai/api/v1/chat/completions"
 
@@ -25,7 +25,17 @@ uploaded_files = st.file_uploader(
     "Upload PDF files", type="pdf", accept_multiple_files=True
 )
 
-question = st.text_input("Ask a question about the documents")
+# Chat memory
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+# Show old messages
+for message in st.session_state.chat_history:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# Chat input
+question = st.chat_input("Ask something about the documents")
 
 if uploaded_files and question:
 
