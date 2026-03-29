@@ -1,40 +1,44 @@
-# Multi-PDF AI Document Assistant
+# 📄 Multi-PDF AI Knowledge Base (RAG)
 
-A Retrieval-Augmented Generation (RAG) web app that allows users to upload multiple PDF documents and ask questions about them.
+AI system that allows users to upload multiple PDFs and ask questions using natural language.
 
-The system extracts text, converts it into embeddings, stores them in a FAISS vector database, and retrieves relevant chunks to generate AI answers.
+---
 
-## Features
+## 🌐 Live Demo
 
-- Upload multiple PDFs
-- Semantic search using FAISS
-- Embedding model (Sentence Transformers)
-- AI answers using OpenRouter LLM
-- Streamlit chat interface
+👉 https://multi-pdf-ai-knowledge-base-fj9ewhiyxcjhmbhchg9xk8.streamlit.app/
 
-## Tech Stack
+---
 
-Python  
-Streamlit  
-FAISS  
-Sentence Transformers  
-PyPDF2  
-OpenRouter API
+## ⚡ Features
 
-## Architecture
+* Multi-document querying
+* Natural language interaction
+* Instant answers from PDFs
+* Vector search with FAISS
 
-PDF Upload
-↓
-Text Chunking
-↓
-Embeddings
-↓
-FAISS Vector Database
-↓
-Semantic Retrieval
-↓
-LLM Answer
+---
 
-## Demo
+## 🛠 Tech Stack
 
-Streamlit App: (https://multi-pdf-ai-knowledge-base-fj9ewhiyxcjhmbhchg9xk8.streamlit.app/)
+* Python
+* LangChain
+* FAISS
+* Embeddings
+* Streamlit
+
+---
+
+## 💡 Use Case
+
+Useful for:
+
+* Research
+* Business documents
+* Knowledge management systems
+
+---
+
+## 👨‍💻 Author
+
+Himanshu Patel
